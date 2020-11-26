@@ -46,6 +46,7 @@ jobs:
 workflows:
   default:
     jobs:
+      - yuvops-ci
       - build-frontend
       - build-backend:
           requires:
