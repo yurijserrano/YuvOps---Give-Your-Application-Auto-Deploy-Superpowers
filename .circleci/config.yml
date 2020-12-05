@@ -43,6 +43,17 @@ jobs:
             cd frontend
             npm run test
 
+  scan-frontend:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - run:
+          name: YuvOps - Scan Frontend Dependencies
+          command: |
+            cd frontend
+            npm audit --audit-level=critical
+
   build-backend:
     docker:
       - image: circleci/node:13.8.0
@@ -75,6 +86,17 @@ jobs:
             cd backend
             npm run test
 
+  scan-backend:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - run:
+          name: YuvOps - Scan Backend Dependencies
+          command: |
+            cd backend
+            npm audit --audit-level=critical
+
 
 workflows:
   default:
@@ -86,9 +108,15 @@ workflows:
       - test-frontend:
           requires:
             - build-frontend
+      - scan-frontend:
+          requires:
+            - test-frontend
       - build-backend:
           requires:
             - test-frontend
       - test-backend:
           requires:
             - build-backend
+      - scan-backend:
+          requires:
+            - test-backend
