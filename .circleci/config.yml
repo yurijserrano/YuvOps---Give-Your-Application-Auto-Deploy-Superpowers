@@ -52,7 +52,7 @@ jobs:
           name: YuvOps - Scan Frontend Dependencies
           command: |
             cd frontend
-            npm audit --audit-level=critical
+            npm audit fix --audit-level=critical --force
 
   build-backend:
     docker:
@@ -95,7 +95,7 @@ jobs:
           name: YuvOps - Scan Backend Dependencies
           command: |
             cd backend
-            npm audit --audit-level=critical
+            npm audit fix --audit-level=critical --force
 
 
 workflows:
