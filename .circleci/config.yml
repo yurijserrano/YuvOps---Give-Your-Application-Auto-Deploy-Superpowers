@@ -221,7 +221,6 @@ jobs:
                 --template-file cloudfront.yml \
                 --stack-name "yuvops-cloudfront-${CIRCLE_WORKFLOW_ID:0:7}" \
                 --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
-      - destroy-yuvops-environment
 
 
 workflows:
@@ -254,3 +253,4 @@ workflows:
           requires:
             - scan-frontend
             - scan-backend
+            - yuvops-cd
