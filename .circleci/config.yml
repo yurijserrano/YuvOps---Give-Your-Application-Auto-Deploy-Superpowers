@@ -190,7 +190,6 @@ jobs:
             YUVOPS_URLS=$(aws ec2 describe-instances --region ${AWS_DEFAULT_REGION} --query "Reservations[*].Instances[*].PublicIpAddress"  --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}"  --output text)
             echo "YUVOPS_URLS=$YUVOPS_URLS"
             echo "$YUVOPS_URLS"
-            echo "$YUVOPS_URLS"
             echo "${CIRCLE_WORKFLOW_ID:0:7}"
             curl -H "Content-Type: text/plain" -H "token: 7c7e45d9-6a83-4d93-b869-7338fcf92714" --request PUT --data "$YUVOPS_URLS" https://api.memstash.io/values/yuvopsurl_${CIRCLE_WORKFLOW_ID:0:7}
       - run:
@@ -208,7 +207,6 @@ jobs:
               YUVOPS_ARN=$(aws s3 ls | grep yuvops)
               echo "YUVOPS_ARN=$YUVOPS_ARN"
               echo "$YUVOPS_ARN"
-              echo "$YUVOPS_ARN"
               curl -H "Content-Type: text/plain" -H "token: 7c7e45d9-6a83-4d93-b869-7338fcf92714" --request PUT --data "$YUVOPS_ARN" https://api.memstash.io/values/yuvopsarn_${CIRCLE_WORKFLOW_ID:0:7}
       - run:
           name: YuvOps - Ensure that the cloudfront infrastructure exists
@@ -221,6 +219,7 @@ jobs:
                 --template-file cloudfront.yml \
                 --stack-name "yuvops-cloudfront-${CIRCLE_WORKFLOW_ID:0:7}" \
                 --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
+      - destroy-yuvops-environment
 
 
 workflows:

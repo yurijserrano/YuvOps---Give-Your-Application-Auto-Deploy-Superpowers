@@ -8,7 +8,7 @@ Parameters:
 
 Resources:
   InstanceSecurityGroup:
-    Type: AWS::EC2::SecurityGroupss
+    Type: AWS::EC2::SecurityGroup
     Properties:
       GroupName: !Sub YuvOps-${ID}
       GroupDescription: YuvOps Allow ports 22, 23, 3030, 9090, 9093 and 9100.
@@ -47,7 +47,7 @@ Resources:
       KeyName: udacity # If you use another key pair name, you should change this value to match.
       # If this ami id is not available for you, you can find another (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/finding-an-ami.html)
       # Ubuntu 18 or higher works fine
-      ImageId: ami-08fb03df64eb51785
+      ImageId: ami-0a91cd140a1fc148a
       Tags:
         - Key: Name
           Value: !Sub backend-${ID}
