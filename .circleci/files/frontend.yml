@@ -1,5 +1,5 @@
 Description: >
-  UdaPeople frontend stack.
+  YuvOps Frontend Stack.
 
 Parameters:
   ID:
@@ -10,12 +10,12 @@ Resources:
   WebsiteBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "udapeople-${ID}"
+      BucketName: !Sub "yuvops-${ID}"
       AccessControl: PublicRead
       WebsiteConfiguration:
         IndexDocument: index.html
         ErrorDocument: 404.html
-  
+
   WebsiteBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
@@ -31,4 +31,4 @@ Resources:
 Outputs:
   WebsiteURL:
     Value: !GetAtt WebsiteBucket.WebsiteURL
-    Description: URL for website hosted on S3
+    Description: URL for YuvOps website hosted on S3

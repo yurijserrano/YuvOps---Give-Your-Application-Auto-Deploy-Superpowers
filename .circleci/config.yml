@@ -1,5 +1,67 @@
 version: 2.1
 
+# YUVOPS - REFERENCE MATERIAL
+
+# FIND CORRECT AMI BASED ON THE REGION:
+# - https://cloud-images.ubuntu.com/locator/
+
+# CIRCLECI REF:
+# - https://circleci.com/docs/2.0/env-vars/
+# - https://discuss.circleci.com/t/using-environment-variables-inside-circle-yml/2427
+# - https://circleci.com/docs/2.0/pipeline-variables/
+# - https://circleci.com/docs/2.0/configuration-reference/#the-when-step-requires-version-21
+# - https://circleci.com/docs/2.0/notifications/
+
+# DOCKER IMAGES:
+# - https://hub.docker.com/_/python
+# - https://hub.docker.com/r/amazon/aws-cli
+
+# USEFUL WEB RESOURCES:
+# - http://www.yamllint.com
+# - https://memstash.io
+
+# AWS - VIDEOS
+# - AWS SETUP: https://youtu.be/d1W1HUz8yRw
+
+# CIRCLECI - VIDEOS
+# - ENVIRONMENT VARIABLES: https://youtu.be/caFJQ1YwVdU
+
+# PROMETHEUS - VIDEOS
+# - PROMETHEUS SETUP: https://youtu.be/PSXrbE54FqQ
+
+
+# AWS CLI
+#
+# INSTALLATION
+# - https://docs.aws.amazon.com/cli/latest/userguide/install-linux.html
+# - https://docs.aws.amazon.com/cli/latest/userguide/install-linux.html#install-linux-pip
+#
+# COMMANDS
+# - cloudformation: https://docs.aws.amazon.com/cli/latest/reference/cloudformation/index.html
+# - deploy: https://docs.aws.amazon.com/cli/latest/reference/cloudformation/deploy/index.html
+# - s3: https://docs.aws.amazon.com/cli/latest/userguide/cli-services-s3-commands.html#using-s3-commands-managing-buckets-creating
+# - create-stack: https://docs.aws.amazon.com/cli/latest/reference/cloudformation/create-stack.html
+# - describe-instances: https://docs.aws.amazon.com/cli/latest/reference/ec2/describe-instances.html
+# - region: https://aws.amazon.com/blogs/infrastructure-and-automation/multiple-account-multiple-region-aws-cloudformation/
+
+# PROMETHEUS PORTS
+# - https://github.com/prometheus/prometheus/wiki/Default-port-allocations
+
+commands:
+  destroy-yuvops-environment:
+    description: YuvOps - Destroy the frontend and backend stacks given the workflow id.
+    steps:
+      - run:
+          name: YuvOps - Destroy yuvops environment
+          command: |
+            aws s3 rm "s3://yuvops-${CIRCLE_WORKFLOW_ID:0:7}" --recursive
+            aws cloudformation delete-stack --stack-name "yuvops-frontend-${CIRCLE_WORKFLOW_ID:0:7}"
+            aws cloudformation delete-stack --stack-name "yuvops-backend-${CIRCLE_WORKFLOW_ID:0:7}"
+            curl -H "Content-Type: text/plain" -H "token: 7c7e45d9-6a83-4d93-b869-7338fcf92714" --request PUT --data "" https://api.memstash.io/values/yuvopsurl_${CIRCLE_WORKFLOW_ID:0:7}
+            curl -H "Content-Type: text/plain" -H "token: 7c7e45d9-6a83-4d93-b869-7338fcf92714" --request PUT --data "" https://api.memstash.io/values/yuvopsarn_${CIRCLE_WORKFLOW_ID:0:7}
+          when: on_fail
+
+
 jobs:
   yuvops-ci:
     docker:
@@ -10,6 +72,16 @@ jobs:
           name: YuvOps - Starting CI process
           command: |
             echo "YuvOps - Starting CI process"
+
+  yuvops-cd:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - run:
+          name: YuvOps - Starting CD process
+          command: |
+            echo "YuvOps - Starting CD process"
 
   build-frontend:
     docker:
@@ -97,6 +169,60 @@ jobs:
             cd backend
             npm audit fix --audit-level=critical --force
 
+  deploy-infrastructure:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run: yum -y install tar gzip
+      - run:
+          name: YuvOps - Ensure that the backend infrastructure exists
+          command: |
+            cd .circleci/files
+            pwd
+            ls
+            echo ${AWS_DEFAULT_REGION}
+            aws cloudformation deploy \
+              --template-file backend.yml \
+              --stack-name "yuvops-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" \
+              --tags project=yuvops
+            YUVOPS_URLS=$(aws ec2 describe-instances --region ${AWS_DEFAULT_REGION} --query "Reservations[*].Instances[*].PublicIpAddress"  --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}"  --output text)
+            echo "YUVOPS_URLS=$YUVOPS_URLS"
+            echo "$YUVOPS_URLS"
+            echo "$YUVOPS_URLS"
+            echo "${CIRCLE_WORKFLOW_ID:0:7}"
+            curl -H "Content-Type: text/plain" -H "token: 7c7e45d9-6a83-4d93-b869-7338fcf92714" --request PUT --data "$YUVOPS_URLS" https://api.memstash.io/values/yuvopsurl_${CIRCLE_WORKFLOW_ID:0:7}
+      - run:
+          name: YuvOps - Ensure that the frontend infrastructure exists
+          command: |
+            cd .circleci/files
+            pwd
+            ls
+            echo ${AWS_DEFAULT_REGION}
+            aws cloudformation deploy \
+              --template-file frontend.yml \
+              --stack-name "yuvops-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" \
+              --tags project=yuvops
+              YUVOPS_ARN=$(aws s3 ls | grep yuvops)
+              echo "YUVOPS_ARN=$YUVOPS_ARN"
+              echo "$YUVOPS_ARN"
+              echo "$YUVOPS_ARN"
+              curl -H "Content-Type: text/plain" -H "token: 7c7e45d9-6a83-4d93-b869-7338fcf92714" --request PUT --data "$YUVOPS_ARN" https://api.memstash.io/values/yuvopsarn_${CIRCLE_WORKFLOW_ID:0:7}
+      - run:
+          name: YuvOps - Ensure that the cloudfront infrastructure exists
+          command: |
+            cd .circleci/files
+            pwd
+            ls
+            echo ${AWS_DEFAULT_REGION}
+            aws cloudformation deploy \
+                --template-file cloudfront.yml \
+                --stack-name "yuvops-cloudfront-${CIRCLE_WORKFLOW_ID:0:7}" \
+                --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
+      - destroy-yuvops-environment
+
 
 workflows:
   default:
@@ -120,3 +246,11 @@ workflows:
       - scan-backend:
           requires:
             - test-backend
+      - yuvops-cd:
+          requires:
+            - scan-frontend
+            - scan-backend
+      - deploy-infrastructure:
+          requires:
+            - scan-frontend
+            - scan-backend
