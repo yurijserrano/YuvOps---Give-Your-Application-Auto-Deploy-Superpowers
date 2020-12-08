@@ -220,6 +220,13 @@ jobs:
                 --stack-name "yuvops-cloudfront-${CIRCLE_WORKFLOW_ID:0:7}" \
                 --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
       - destroy-yuvops-environment
+      - run:
+          name: YuvOps - Verify cloudfront not being created
+          command: |
+            aws cloudformation describe-stack-events \
+                --stackname 'yuvops-cloudfront-${CIRCLE_WORKFLOW_ID:0:7}'
+
+
 
 
 workflows:
