@@ -219,6 +219,7 @@ jobs:
             export OldWorkflowID=$(aws cloudformation list-exports --query "Exports[?Name=='WorkflowID-$OLDID'].Value" --no-paginate --output text)
             echo "$OldWorkflowID"
             echo "$OLDID"
+            echo "$OLDID"
             aws cloudformation deploy \
                 --template-file cloudfront.yml \
                 --stack-name "yuvops-cloudfront-${CIRCLE_WORKFLOW_ID:0:7}" \
