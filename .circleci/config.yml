@@ -215,10 +215,15 @@ jobs:
             pwd
             ls
             echo ${AWS_DEFAULT_REGION}
+            OLDID=$(curl -H "token: 7c7e45d9-6a83-4d93-b869-7338fcf92714" --request GET https://api.memstash.io/values/oldid)
+            export OldWorkflowID=$(aws cloudformation list-exports --query "Exports[?Name=='WorkflowID-$OLDID'].Value" --no-paginate --output text)
+            echo "$OldWorkflowID"
+            echo "$OLDID"
             aws cloudformation deploy \
                 --template-file cloudfront.yml \
                 --stack-name "yuvops-cloudfront-${CIRCLE_WORKFLOW_ID:0:7}" \
                 --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
+            curl -H "Content-Type: text/plain" -H "token: 7c7e45d9-6a83-4d93-b869-7338fcf92714" --request PUT --data "${CIRCLE_WORKFLOW_ID:0:7}" https://api.memstash.io/values/oldid
       - destroy-yuvops-environment
 
 
