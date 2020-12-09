@@ -229,6 +229,7 @@ jobs:
                 echo "Need to update Cloudfront"
                 echo "OLDWORKFLOWID: ${OldWorkflowID}"
                 echo "NEWWORKFLOWID: ${CIRCLE_WORKFLOW_ID:0:7}"
+                echo "TEST WORKED"
             else
                 echo "Creating Cloudfront Yuri"
                 aws cloudformation deploy \
