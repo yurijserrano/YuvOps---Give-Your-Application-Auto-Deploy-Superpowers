@@ -94,6 +94,18 @@ commands:
               echo "NO MIGRATION OCCURED"
             fi
 
+  deploy-frontend:
+    docker:
+      - image: python:3.7-alpine3.12
+    steps:
+      - checkout
+      - run:
+          name: "YuvOps - Installing Dependencies"
+          command: |
+            apk add --update tar gzip ansible nodejs npm curl
+            pip install awscli
+
+
 
 jobs:
   yuvops-ci:
@@ -287,7 +299,7 @@ jobs:
 
   run-migrations:
     docker:
-      - image: circleci/node:13.8.0
+      - image: circleci/node
     steps:
       - checkout
       - run:
