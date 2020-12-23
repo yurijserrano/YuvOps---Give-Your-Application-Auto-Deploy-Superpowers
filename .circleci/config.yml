@@ -75,6 +75,25 @@ commands:
             curl -H "Content-Type: text/plain" -H "token: 7c7e45d9-6a83-4d93-b869-7338fcf92714" --request PUT --data "" https://api.memstash.io/values/yuvopsarn_${CIRCLE_WORKFLOW_ID:0:7}
           when: on_fail
 
+  revert-migrations:
+    description: "YuvOps - Revert the last migration if the process was executed successfully in the current workflow"
+    steps:
+      - run:
+          name: "YuvOps - Revert Migrations"
+          when: on_fail
+          command: |
+            YUVOPS_SUCCESS_MIGRATION=$(curl -H "token: 7c7e45d9-6a83-4d93-b869-7338fcf92714" --request GET https://api.memstash.io/values/yuvopsmigrations_${CIRCLE_WORKFLOW_ID:0:7})
+            echo "RESULT: $YUVOPS_SUCCESS_MIGRATION"
+            if (( $YUVOPS_SUCCESS_MIGRATION == true ));
+            then
+              cd ~/project/backend
+              npm install
+              npm run migration:revert
+              echo "MIGRATION REVERT STATUS: SUCCESS"
+            else
+              echo "MIGRATION REVERT STATUS: FAIL"
+            fi
+
 
 jobs:
   yuvops-ci:
@@ -250,7 +269,7 @@ jobs:
             cat inventory.txt
       - run:
           name: "YuvOps - Using Ansible to Configure the Server"
-          no_output_timeout: 20m
+          no_output_timeout: 15m
           command: |
             echo ENVIROMENT=production > "backend/.env"
             echo TYPEORM_CONNECTION=postgres >> "backend/.env"
@@ -266,6 +285,35 @@ jobs:
             ansible-playbook -i inventory.txt yuvops-configure-server.yml
       - destroy-yuvops-environment
 
+  run-migrations:
+    docker:
+      - image: circleci/node
+    steps:
+      - checkout
+      - run:
+          name: "YuvOps - Install Dependencies"
+          command: |
+            cd backend
+            npm install
+      - run:
+          name: "YuvOps - Perform Database Migration"
+          command: |
+            cd backend
+            touch yuvops_migrations_results.txt
+            npm run migrations > yuvops_migrations_results.txt
+      - run:
+          name: "YuvOps - Save Migration Status"
+          command: |
+            cd backend
+            if grep "has been executed successfully" yuvops_migrations_results.txt
+            then
+              echo "STATUS MIGRATION: SUCCESS"
+              curl -H "Content-Type: text/plain" -H "token: 7c7e45d9-6a83-4d93-b869-7338fcf92714" --request PUT --data "true" https://api.memstash.io/values/yuvopsmigrations_${CIRCLE_WORKFLOW_ID:0:7}
+            else
+              echo "STATUS MIGRATION: FAIL"
+              curl -H "Content-Type: text/plain" -H "token: 7c7e45d9-6a83-4d93-b869-7338fcf92714" --request PUT --data "false" https://api.memstash.io/values/yuvopsmigrations_${CIRCLE_WORKFLOW_ID:0:7}
+            fi
+      - destroy-yuvops-environment
 
 
 workflows:
@@ -302,3 +350,6 @@ workflows:
       - configure-infrastructure:
           requires:
             - deploy-infrastructure
+      - run-migrations:
+          requires:
+            - configure-infrastructure
