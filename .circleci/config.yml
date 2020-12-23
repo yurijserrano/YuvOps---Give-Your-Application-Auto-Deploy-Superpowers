@@ -84,14 +84,14 @@ commands:
           command: |
             YUVOPS_SUCCESS_MIGRATION=$(curl -H "token: 7c7e45d9-6a83-4d93-b869-7338fcf92714" --request GET https://api.memstash.io/values/yuvopsmigrations_${CIRCLE_WORKFLOW_ID:0:7})
             echo "RESULT: $YUVOPS_SUCCESS_MIGRATION"
-            if (( $YUVOPS_SUCCESS_MIGRATION == true ));
+            if (( $YUVOPS_SUCCESS_MIGRATION == "true" ));
             then
               cd ~/project/backend
               npm install
-              npm run migration:revert
+              npm run migrations:revert
               echo "MIGRATION REVERT STATUS: SUCCESS"
             else
-              echo "MIGRATION REVERT STATUS: FAIL"
+              echo "NO MIGRATION OCCURED"
             fi
 
 
@@ -287,7 +287,7 @@ jobs:
 
   run-migrations:
     docker:
-      - image: circleci/node
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - run:
@@ -301,17 +301,16 @@ jobs:
             cd backend
             touch yuvops_migrations_results.txt
             npm run migrations > yuvops_migrations_results.txt
-            cat yuvops_migrations_results.txt
       - run:
           name: "YuvOps - Save Migration Status"
           command: |
             cd backend
-            if grep "executed successfully" yuvops_migrations_results.txt
+            cat yuvops_migrations_results.txt
+            if grep -q "has been executed successfully" yuvops_migrations_results.txt
             then
-              echo "STATUS MIGRATION: SUCCESS"
+              echo "STATUS MIGRATION: SUCCESS - CAN BE DONE"
               curl -H "Content-Type: text/plain" -H "token: 7c7e45d9-6a83-4d93-b869-7338fcf92714" --request PUT --data "true" https://api.memstash.io/values/yuvopsmigrations_${CIRCLE_WORKFLOW_ID:0:7}
             else
-              echo "STATUS MIGRATION: FAIL"
               curl -H "Content-Type: text/plain" -H "token: 7c7e45d9-6a83-4d93-b869-7338fcf92714" --request PUT --data "false" https://api.memstash.io/values/yuvopsmigrations_${CIRCLE_WORKFLOW_ID:0:7}
             fi
       - destroy-yuvops-environment
