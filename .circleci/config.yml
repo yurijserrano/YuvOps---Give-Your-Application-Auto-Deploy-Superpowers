@@ -52,6 +52,12 @@ version: 2.1
 # - describe-instances: https://docs.aws.amazon.com/cli/latest/reference/ec2/describe-instances.html
 # - region: https://aws.amazon.com/blogs/infrastructure-and-automation/multiple-account-multiple-region-aws-cloudformation/
 
+# ANSIBLE
+#
+# - wait_for_connection: https://docs.ansible.com/ansible/2.5/modules/wait_for_connection_module.html
+# - hosts & groups: https://docs.ansible.com/ansible/2.3/intro_inventory.html
+
+
 # PROMETHEUS PORTS
 # - https://github.com/prometheus/prometheus/wiki/Default-port-allocations
 
@@ -217,6 +223,49 @@ jobs:
               echo "$YUVOPS_ARN"
               curl -H "Content-Type: text/plain" -H "token: 7c7e45d9-6a83-4d93-b869-7338fcf92714" --request PUT --data "$YUVOPS_ARN" https://api.memstash.io/values/yuvopsarn_${CIRCLE_WORKFLOW_ID:0:7}
       - destroy-yuvops-environment
+
+
+
+  configure-infrastructure:
+    docker:
+      - image: python:3.7-alpine3.12
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/project
+      - add_ssh_keys:
+          fingerprints: ["d7:d3:10:26:b3:5f:8f:e6:f7:86:0d:75:e3:9e:0a:d1"]
+      - run:
+          name: "YuvOps - Installing Dependencies"
+          command: |
+            apk add --update tar gzip ansible nodejs npm curl
+            pip install awscli
+      - run:
+          name: "YuvOps - Setting up the inventory file"
+          command: |
+            cd .circleci/ansible
+            echo "[web]" >> inventory.txt
+            YUVOPS_URLS=$(curl -H "token: 7c7e45d9-6a83-4d93-b869-7338fcf92714" --request GET https://api.memstash.io/values/yuvopsurl_${CIRCLE_WORKFLOW_ID:0:7})
+            echo "$YUVOPS_URLS" >> inventory.txt
+            cat inventory.txt
+      - run:
+          name: "YuvOps - Using Ansible to Configure the Server"
+          no_output_timeout: 20m
+          command: |
+            echo ENVIROMENT=production > "backend/.env"
+            echo TYPEORM_CONNECTION=postgres >> "backend/.env"
+            echo TYPEORM_MIGRATIONS_DIR=./src/migrations >> "backend/.env"
+            echo TYPEORM_ENTITIES=./src/modules/domain/**/*.entity.ts >> "backend/.env"
+            echo TYPEORM_MIGRATIONS=./src/migrations/*.ts >> "backend/.env"
+            echo TYPEORM_HOST=$TYPEORM_HOST >> "backend/.env"
+            echo TYPEORM_PORT=$TYPEORM_PORT >> "backend/.env"
+            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "backend/.env"
+            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> "backend/.env"
+            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"
+            cd .circleci/ansible
+            ansible-playbook -i inventory.txt yuvops-configure-server.yml
+      - destroy-yuvops-environment
+
 
 
 workflows:
