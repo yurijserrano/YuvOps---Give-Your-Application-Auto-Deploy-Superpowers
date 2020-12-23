@@ -299,3 +299,6 @@ workflows:
             - scan-frontend
             - scan-backend
             - yuvops-cd
+      - configure-infrastructure:
+          requires:
+            - deploy-infrastructure
