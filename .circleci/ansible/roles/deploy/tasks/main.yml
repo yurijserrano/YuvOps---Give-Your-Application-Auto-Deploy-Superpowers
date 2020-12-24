@@ -37,8 +37,8 @@
 - name: "YuvOps - Building Backend Service"
   shell: |
     cd /home/ubuntu/backend
-    npm audit fix --audit-level=critical --force
     npm run build
+    npm run prestart:prod
 
 - name: "YuvOps - Running Backend Service with PM2"
   shell: |

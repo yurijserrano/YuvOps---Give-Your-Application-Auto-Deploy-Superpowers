@@ -242,6 +242,17 @@ jobs:
               echo "YUVOPS_ARN=$YUVOPS_ARN"
               echo "$YUVOPS_ARN"
               curl -H "Content-Type: text/plain" -H "token: 7c7e45d9-6a83-4d93-b869-7338fcf92714" --request PUT --data "$YUVOPS_ARN" https://api.memstash.io/values/yuvopsarn_${CIRCLE_WORKFLOW_ID:0:7}
+      - run:
+          name: YuvOps - Ensure that the cloudfront infrastructure exists
+          command: |
+            cd .circleci/files
+            pwd
+            ls
+            echo ${AWS_DEFAULT_REGION}
+            aws cloudformation deploy \
+                --template-file cloudfront.yml \
+                --stack-name "yuvops-cloudfront-${CIRCLE_WORKFLOW_ID:0:7}" \
+                --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
       - destroy-yuvops-environment
 
 
@@ -348,7 +359,7 @@ jobs:
             npm run build
             npm audit fix --audit-level=critical --force
             cd dist
-            aws s3 sync . s3://yuvops-"${CIRCLE_WORKFLOW_ID:0:7}" --delete
+            aws s3 sync . s3://yuvops-"${CIRCLE_WORKFLOW_ID:0:7}"
       - destroy-yuvops-environment
       - revert-yuvops-migrations
 
@@ -391,6 +402,7 @@ jobs:
             echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> ".env"
             npm install
             npm run build
+            npm run prestart:prod
             rm README.md
             rm -rf node_modules
             rm -rf dist
@@ -415,6 +427,7 @@ jobs:
             echo "YUVOPS BACKEND IP: ${YUVOPS_BACKEND_IP}"
             YUVOPS_BACKEND_URL="http://${YUVOPS_BACKEND_IP}:3030/api/status"
             echo ${YUVOPS_BACKEND_URL}
+            curl ${YUVOPS_BACKEND_URL}
             if curl -s ${YUVOPS_BACKEND_URL} | grep "ok"
             then
               echo "BACKEND TEST: SUCCESS"
@@ -475,15 +488,15 @@ workflows:
       - configure-infrastructure:
           requires:
             - deploy-infrastructure
-      - deploy-backend:
-          requires:
-            - configure-infrastructure
       - run-migrations:
           requires:
-            - deploy-backend
-      - deploy-frontend:
+            - configure-infrastructure
+      - deploy-backend:
           requires:
             - run-migrations
+      - deploy-frontend:
+          requires:
+            - deploy-backend
       - smoke-test:
           requires:
             - deploy-frontend
