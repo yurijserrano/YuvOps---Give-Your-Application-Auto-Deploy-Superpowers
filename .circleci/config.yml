@@ -276,11 +276,17 @@ jobs:
           name: "YuvOps - Installing Dependencies"
           command: |
             apk add --update tar gzip ansible nodejs npm curl
+            apk add openssh-client
             pip install awscli
       - run:
           name: "YuvOps - Setting up the inventory file"
           command: |
             cd .circleci/ansible
+            echo "[ssh_connection]" > ansible.cfg
+            echo "scp_if_ssh=True" >> ansible.cfg
+            echo "timeout=20">> ansible.cfg
+            cat ansible.cfg
+
             echo "[web]" >> inventory.txt
             YUVOPS_URLS=$(curl -H "token: 7c7e45d9-6a83-4d93-b869-7338fcf92714" --request GET https://api.memstash.io/values/yuvopsurl_${CIRCLE_WORKFLOW_ID:0:7})
             echo "$YUVOPS_URLS" >> inventory.txt
@@ -423,6 +429,8 @@ jobs:
             rm -rf node_modules
             rm -rf dist
             rm -rf test
+            echo "ENV"
+            cat ./backend/.env
             mkdir -p ../.circleci/ansible/roles/deploy/files
             cd ../.circleci/ansible
             ansible-playbook -i inventory.txt yuvops-deploy-backend.yml
