@@ -360,8 +360,8 @@ jobs:
             npm audit fix --audit-level=critical --force
             cd dist
             aws s3 sync . s3://yuvops-"${CIRCLE_WORKFLOW_ID:0:7}"
-      - destroy-yuvops-environment
       - revert-yuvops-migrations
+      - destroy-yuvops-environment
 
   deploy-backend:
     docker:
@@ -410,8 +410,8 @@ jobs:
             mkdir -p ../.circleci/ansible/roles/deploy/files
             cd ../.circleci/ansible
             ansible-playbook -i inventory.txt yuvops-deploy-backend.yml
-      - destroy-yuvops-environment
       - revert-yuvops-migrations
+      - destroy-yuvops-environment
 
   smoke-test:
     docker:
@@ -449,8 +449,8 @@ jobs:
               echo "FRONTEND TEST: FAIL"
               exit 1
             fi
-      - destroy-yuvops-environment
-      - revert-yuvops-migrations
+      # - revert-yuvops-migrations
+      # - destroy-yuvops-environment
 
 
 

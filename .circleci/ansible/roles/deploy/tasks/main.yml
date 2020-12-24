@@ -22,13 +22,6 @@
     src: /root/project/backend
     dest: /home/ubuntu
 
-- name: Removing Oldest Backend with PM2
-  ignore_errors: yes
-  shell: |
-    pm2 stop backend
-    pm2 delete backend
-
-
 - name: "YuvOps - Installing Node Dependencies"
   shell: |
     cd /home/ubuntu/backend
