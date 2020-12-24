@@ -429,8 +429,6 @@ jobs:
             rm -rf node_modules
             rm -rf dist
             rm -rf test
-            echo "ENV"
-            cat ./backend/.env
             mkdir -p ../.circleci/ansible/roles/deploy/files
             cd ../.circleci/ansible
             ansible-playbook -i inventory.txt yuvops-deploy-backend.yml
