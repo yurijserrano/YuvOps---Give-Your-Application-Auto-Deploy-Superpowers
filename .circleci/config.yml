@@ -461,7 +461,7 @@ jobs:
       - run:
           name: "YuvOps - Smoke Test Frontend"
           command: |
-            YUVOPS_FRONTEND_URL="http://yuvops-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-${AWS_DEFAULT_REGION}.amazonaws.com/#/employees"
+            YUVOPS_FRONTEND_URL="http://yuvops-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-east-2.amazonaws.com/#/employees"
             echo "YUVOPS FRONTEND URL: ${YUVOPS_FRONTEND_URL}"
             if curl -s ${YUVOPS_FRONTEND_URL} | grep "Welcome"
             then
@@ -513,12 +513,12 @@ workflows:
       - run-migrations:
           requires:
             - configure-infrastructure
-      - deploy-backend:
-          requires:
-            - run-migrations
       - deploy-frontend:
           requires:
-            - deploy-backend
-      - smoke-test:
+            - run-migrations
+      - deploy-backend:
           requires:
             - deploy-frontend
+      - smoke-test:
+          requires:
+            - deploy-backend
