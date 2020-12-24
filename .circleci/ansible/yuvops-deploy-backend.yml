@@ -1,5 +1,5 @@
 ---
-- name: "YuvOps - Configuring Server"
+- name: "YuvOps - Deploying Backend"
   user: ubuntu
   hosts: all
   become: true
@@ -32,5 +32,5 @@
     - setup:
 
   roles:
-    - configure-prometheus-node-exporter
-    - configure-server
+    - deploy
+

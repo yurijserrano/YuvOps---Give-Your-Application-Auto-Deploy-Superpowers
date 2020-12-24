@@ -1,0 +1,46 @@
+---
+- name: "YuvOps - Updating Packages"
+  become: true
+  apt:
+    update_cache: yes
+
+- name: "YuvOps - Upgrading Packages"
+  become: true
+  apt:
+    upgrade: yes
+
+- name: "YuvOps - Installing Dependencies"
+  become: true
+  apt:
+    name: ["nodejs", "npm", "tar"]
+    state: latest
+    update_cache: yes
+
+- name: "YuvOps - Copying Backend Folder"
+  become: true
+  copy:
+    src: /root/project/backend
+    dest: /home/ubuntu
+
+- name: Removing Oldest Backend with PM2
+  ignore_errors: yes
+  shell: |
+    pm2 stop backend
+    pm2 delete backend
+
+
+- name: "YuvOps - Installing Node Dependencies"
+  shell: |
+    cd /home/ubuntu/backend
+    npm install
+
+- name: "YuvOps - Building Backend Service"
+  shell: |
+    cd /home/ubuntu/backend
+    npm audit fix --audit-level=critical --force
+    npm run build
+
+- name: "YuvOps - Running Backend Service with PM2"
+  shell: |
+    cd /home/ubuntu/backend
+    pm2 start npm --no-automation --name "backend" -- run start

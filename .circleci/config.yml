@@ -32,7 +32,7 @@ version: 2.1
 # BASH
 # SYNTAX - IF THEN ELSE: https://linuxize.com/post/bash-if-else-statement/
 # -n flag: https://ryanstutorials.net/bash-scripting-tutorial/bash-if-statements.php
-
+# mkdir -p: https://www.javatpoint.com/linux-mkdir-p
 
 # AWS ERRORS
 # - FIX EXPORT NAME ERROR CLOUDFRONT: https://stackoverflow.com/questions/63271865/export-with-name-exrole-is-already-exported-by-stack-root-role
@@ -51,6 +51,8 @@ version: 2.1
 # - create-stack: https://docs.aws.amazon.com/cli/latest/reference/cloudformation/create-stack.html
 # - describe-instances: https://docs.aws.amazon.com/cli/latest/reference/ec2/describe-instances.html
 # - region: https://aws.amazon.com/blogs/infrastructure-and-automation/multiple-account-multiple-region-aws-cloudformation/
+# - s3 sync: https://docs.aws.amazon.com/cli/latest/reference/s3/sync.html
+
 
 # ANSIBLE
 #
@@ -75,7 +77,7 @@ commands:
             curl -H "Content-Type: text/plain" -H "token: 7c7e45d9-6a83-4d93-b869-7338fcf92714" --request PUT --data "" https://api.memstash.io/values/yuvopsarn_${CIRCLE_WORKFLOW_ID:0:7}
           when: on_fail
 
-  revert-migrations:
+  revert-yuvops-migrations:
     description: "YuvOps - Revert the last migration if the process was executed successfully in the current workflow"
     steps:
       - run:
@@ -290,18 +292,18 @@ jobs:
     steps:
       - checkout
       - run:
-          name: "YuvOps - Install Dependencies"
+          name: "YuvOps - Installing Dependencies"
           command: |
             cd backend
             npm install
       - run:
-          name: "YuvOps - Perform Database Migration"
+          name: "YuvOps - Performing Database Migration"
           command: |
             cd backend
             touch yuvops_migrations_results.txt
             npm run migrations > yuvops_migrations_results.txt
       - run:
-          name: "YuvOps - Save Migration Status"
+          name: "YuvOps - Saving Migration Status"
           command: |
             cd backend
             cat yuvops_migrations_results.txt
@@ -313,6 +315,130 @@ jobs:
               curl -H "Content-Type: text/plain" -H "token: 7c7e45d9-6a83-4d93-b869-7338fcf92714" --request PUT --data "false" https://api.memstash.io/values/yuvopsmigrations_${CIRCLE_WORKFLOW_ID:0:7}
             fi
       - destroy-yuvops-environment
+
+  deploy-frontend:
+    docker:
+      - image: python:3.7-alpine3.12
+    steps:
+      - checkout
+      - run:
+          name: "YuvOps - Installing Dependencies"
+          command: |
+            apk add --no-cache nodejs
+            apk add --no-cache npm
+            apk add --no-cache sudo
+            apk add --no-cache bash
+            pip install awscli
+      - run:
+          name: "YuvOps - Retrieving Backend Url"
+          command: |
+            export YUVOPS_BACKEND_IP=$(aws ec2 describe-instances \
+              --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --output text)
+            export API_URL=http://$YUVOPS_BACKEND_IP:3030
+            echo "API_URL=$API_URL" > frontend/.env
+            echo "${API_URL}"
+      - run:
+          name: "YuvOps - Deploying Frontend"
+          command: |
+            npm install webpack-dev-server -g
+            cd frontend
+            npm install
+            npm run build
+            npm audit fix --audit-level=critical --force
+            cd dist
+            aws s3 sync . s3://yuvops-"${CIRCLE_WORKFLOW_ID:0:7}" --delete
+      - destroy-yuvops-environment
+      - revert-yuvops-migrations
+
+  deploy-backend:
+    docker:
+      - image: python:3.7-alpine3.12
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints: ["d7:d3:10:26:b3:5f:8f:e6:f7:86:0d:75:e3:9e:0a:d1"]
+      - run:
+          name: "YuvOps - Installing Dependencies"
+          command: |
+            apk add --update tar gzip ansible nodejs npm curl
+            pip install awscli
+      - run:
+          name: "YuvOps - Setting up the Inventory File"
+          command: |
+            cd .circleci/ansible
+            echo "[web]" >> inventory.txt
+            YUVOPS_URLS=$(curl -H "token: 7c7e45d9-6a83-4d93-b869-7338fcf92714" --request GET https://api.memstash.io/values/yuvopsurl_${CIRCLE_WORKFLOW_ID:0:7})
+            echo "$YUVOPS_URLS"
+            echo "$YUVOPS_URLS" >> inventory.txt
+            cat inventory.txt
+      - run:
+          name: "YuvOps - Building and Deploying Backend"
+          no_output_timeout: 15m
+          command: |
+            cd backend
+            touch .env
+            echo ENVIROMENT=production > ".env"
+            echo TYPEORM_CONNECTION=postgres >> ".env"
+            echo TYPEORM_MIGRATIONS_DIR=./src/migrations >> ".env"
+            echo TYPEORM_ENTITIES=./src/modules/domain/**/*.entity.ts >> ".env"
+            echo TYPEORM_MIGRATIONS=./src/migrations/*.ts >> ".env"
+            echo TYPEORM_HOST=$TYPEORM_HOST >> ".env"
+            echo TYPEORM_PORT=$TYPEORM_PORT >> ".env"
+            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> ".env"
+            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> ".env"
+            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> ".env"
+            npm install
+            npm run build
+            rm README.md
+            rm -rf node_modules
+            rm -rf dist
+            rm -rf test
+            mkdir -p ../.circleci/ansible/roles/deploy/files
+            cd ../.circleci/ansible
+            ansible-playbook -i inventory.txt yuvops-deploy-backend.yml
+      - destroy-yuvops-environment
+      - revert-yuvops-migrations
+
+  smoke-test:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - run:
+          name: "YuvOps - Smoke Test Backend"
+          command: |
+            YUVOPS_BACKEND_IP=$(aws ec2 --region ${AWS_DEFAULT_REGION} describe-instances \
+            --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+            --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            --output text)
+            echo "YUVOPS BACKEND IP: ${YUVOPS_BACKEND_IP}"
+            YUVOPS_BACKEND_URL="http://${YUVOPS_BACKEND_IP}:3030/api/status"
+            echo ${YUVOPS_BACKEND_URL}
+            if curl -s ${YUVOPS_BACKEND_URL} | grep "ok"
+            then
+              echo "BACKEND TEST: SUCCESS"
+              exit 0
+            else
+              echo "BACKEND TEST: FAIL"
+              exit 1
+            fi
+      - run:
+          name: "YuvOps - Smoke Test Frontend"
+          command: |
+            YUVOPS_FRONTEND_URL="http://yuvops-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-${AWS_DEFAULT_REGION}.amazonaws.com/#/employees"
+            echo "YUVOPS FRONTEND URL: ${YUVOPS_FRONTEND_URL}"
+            if curl -s ${YUVOPS_FRONTEND_URL} | grep "Welcome"
+            then
+              echo "FRONTEND TEST: SUCCESS"
+              exit 1
+            else
+              echo "FRONTEND TEST: FAIL"
+              exit 1
+            fi
+      - destroy-yuvops-environment
+      - revert-yuvops-migrations
+
 
 
 workflows:
@@ -349,6 +475,15 @@ workflows:
       - configure-infrastructure:
           requires:
             - deploy-infrastructure
-      - run-migrations:
+      - deploy-backend:
           requires:
             - configure-infrastructure
+      - run-migrations:
+          requires:
+            - deploy-backend
+      - deploy-frontend:
+          requires:
+            - run-migrations
+      - smoke-test:
+          requires:
+            - deploy-frontend
