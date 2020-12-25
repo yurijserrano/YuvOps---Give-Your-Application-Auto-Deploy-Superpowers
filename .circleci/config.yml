@@ -450,6 +450,7 @@ jobs:
             echo "YUVOPS BACKEND IP: ${YUVOPS_BACKEND_IP}"
             YUVOPS_BACKEND_URL="http://${YUVOPS_BACKEND_IP}:3030/api/status"
             echo ${YUVOPS_BACKEND_URL}
+            sleep 10
             curl ${YUVOPS_BACKEND_URL}
             if curl -s ${YUVOPS_BACKEND_URL} | grep "ok"
             then
@@ -464,6 +465,7 @@ jobs:
           command: |
             YUVOPS_FRONTEND_URL="http://yuvops-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-east-2.amazonaws.com/index.html#/employees"
             echo "YUVOPS FRONTEND URL: ${YUVOPS_FRONTEND_URL}"
+            sleep 10
             if curl -s ${YUVOPS_FRONTEND_URL} | grep "Welcome"
             then
               echo "FRONTEND TEST: SUCCESS"
