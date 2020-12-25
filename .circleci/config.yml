@@ -58,7 +58,7 @@ version: 2.1
 #
 # - wait_for_connection: https://docs.ansible.com/ansible/2.5/modules/wait_for_connection_module.html
 # - hosts & groups: https://docs.ansible.com/ansible/2.3/intro_inventory.html
-
+# - ssh key access: https://superuser.com/questions/1179888/how-can-i-escape-the-message-that-the-authenticity-of-cant-be-established-for-s
 
 # PROMETHEUS PORTS
 # - https://github.com/prometheus/prometheus/wiki/Default-port-allocations
@@ -308,9 +308,11 @@ jobs:
 
   run-migrations:
     docker:
-      - image: circleci/node
+      - image: circleci/node:13.8.0
     steps:
       - checkout
+      - add_ssh_keys:
+          fingerprints: ['d7:d3:10:26:b3:5f:8f:e6:f7:86:0d:75:e3:9e:0a:d1']
       - run:
           name: "YuvOps - Installing Dependencies"
           command: |
@@ -323,7 +325,7 @@ jobs:
             ls -ld backend
             cd backend
             touch yuvops_migrations_results.txt
-            npm run migrations > yuvops_migrations_results.txt
+            sudo npm run migrations > yuvops_migrations_results.txt
       - run:
           name: "YuvOps - Saving Migration Status"
           command: |
