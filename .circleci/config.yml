@@ -341,13 +341,12 @@ jobs:
       - image: python:3.7-alpine3.11
     steps:
       - checkout
+      - attach_workspace:
+          at: ~/project
       - run:
           name: "YuvOps - Installing Dependencies"
           command: |
-            apk add --no-cache nodejs
-            apk add --no-cache npm
-            apk add --no-cache sudo
-            apk add --no-cache bash
+            apk add --update tar gzip ansible nodejs npm curl
             pip install awscli
       - run:
           name: "YuvOps - Retrieving Backend Url"
@@ -380,6 +379,8 @@ jobs:
       - checkout
       - add_ssh_keys:
           fingerprints: ["d7:d3:10:26:b3:5f:8f:e6:f7:86:0d:75:e3:9e:0a:d1"]
+      - attach_workspace:
+          at: ~/project
       - run:
           name: "YuvOps - Installing Dependencies"
           command: |
@@ -460,7 +461,7 @@ jobs:
       - run:
           name: "YuvOps - Smoke Test Frontend"
           command: |
-            YUVOPS_FRONTEND_URL="http://yuvops-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-east-2.amazonaws.com/index.html#/employees"
+            YUVOPS_FRONTEND_URL="http://yuvops-${CIRCLE_WORKFLOW_ID:0:7}.s3.us-east-2.amazonaws.com/index.html#/employees"
             echo "YUVOPS FRONTEND URL: ${YUVOPS_FRONTEND_URL}"
             sleep 10
             if curl -s ${YUVOPS_FRONTEND_URL} | grep "Welcome"
