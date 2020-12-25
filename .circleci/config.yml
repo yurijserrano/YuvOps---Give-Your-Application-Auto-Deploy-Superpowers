@@ -319,6 +319,8 @@ jobs:
       - run:
           name: "YuvOps - Performing Database Migration"
           command: |
+            sudo chmod -R 777 backend
+            ls -ld backend
             cd backend
             touch yuvops_migrations_results.txt
             npm run migrations > yuvops_migrations_results.txt
