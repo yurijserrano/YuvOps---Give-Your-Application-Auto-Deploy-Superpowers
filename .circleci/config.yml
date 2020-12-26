@@ -95,9 +95,9 @@ commands:
               cd ~/project/backend
               npm install
               npm run migrations:revert
-              echo "MIGRATION REVERT STATUS: SUCCESS"
+              echo "MIGRATION HAS BEEN EXECUTED SUCCESSFULLY"
             else
-              echo "NO MIGRATION OCCURRED"
+              echo "NO MIGRATIONS ARE PENDING"
             fi
 
 jobs:
@@ -326,7 +326,6 @@ jobs:
             cat yuvops_migrations_results.txt
             if grep -q "has been executed successfully" yuvops_migrations_results.txt
             then
-              echo "STATUS MIGRATION: SUCCESS - CAN BE DONE"
               curl -H "Content-Type: text/plain" -H "token: 7c7e45d9-6a83-4d93-b869-7338fcf92714" --request PUT --data "true" https://api.memstash.io/values/yuvopsmigrations_${CIRCLE_WORKFLOW_ID:0:7}
             else
               curl -H "Content-Type: text/plain" -H "token: 7c7e45d9-6a83-4d93-b869-7338fcf92714" --request PUT --data "false" https://api.memstash.io/values/yuvopsmigrations_${CIRCLE_WORKFLOW_ID:0:7}
