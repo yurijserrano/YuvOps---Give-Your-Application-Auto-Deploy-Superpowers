@@ -84,6 +84,7 @@ commands:
     steps:
       - run:
           name: "YuvOps - Revert Migrations"
+          when: on_fail
           command: |
             YUVOPS_SUCCESS_MIGRATION=$(curl -H "token: 7c7e45d9-6a83-4d93-b869-7338fcf92714" --request GET https://api.memstash.io/values/yuvopsmigrations_${CIRCLE_WORKFLOW_ID:0:7})
             echo "RESULT: $YUVOPS_SUCCESS_MIGRATION"
