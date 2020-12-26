@@ -1,5 +1,5 @@
 ---
-- name: "YuvOps - Configuring Server TEST"
+- name: "YuvOps - Configuring Server"
   user: ubuntu
   hosts: all
   become: true
