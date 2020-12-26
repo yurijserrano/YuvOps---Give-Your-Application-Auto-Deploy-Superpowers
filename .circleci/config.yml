@@ -479,6 +479,29 @@ jobs:
       - revert-yuvops-migrations
       - destroy-yuvops-environment
 
+  cloudfront-update:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: "YuvOps - Add/Update Cloudfront Distribution"
+          command: |
+            set TERM=xterm
+            export OldWorkflowID=$(aws cloudformation list-exports --query "Exports[?Name=='WorkflowID'].Value" --no-paginate --output text)
+            echo "OLDWORKFLOWID: ${OldWorkflowID}
+            if [ -n "${OldWorkflowID}" ]
+            then
+              echo "Update Existing CloudFront Stack"
+              aws cloudformation update-stack  \
+                --stack-name yuvops-cloudfront \
+                --template-body file://./.circleci/files/cloudfront.yml \
+                --parameters ParameterKey=WorkflowID,ParameterValue=${CIRCLE_WORKFLOW_ID:0:7} \
+                --tags 'Key=project,Value=yuvops'
+
+
+
+
 
 
 workflows:
