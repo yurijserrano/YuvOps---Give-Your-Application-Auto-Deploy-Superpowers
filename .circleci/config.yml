@@ -33,6 +33,7 @@ version: 2.1
 # SYNTAX - IF THEN ELSE: https://linuxize.com/post/bash-if-else-statement/
 # -n flag: https://ryanstutorials.net/bash-scripting-tutorial/bash-if-statements.php
 # mkdir -p: https://www.javatpoint.com/linux-mkdir-p
+# chmod: https://askubuntu.com/questions/22383/how-to-give-read-write-permission-to-a-folder-and-its-sub-folders-and-files
 
 # AWS ERRORS
 # - FIX EXPORT NAME ERROR CLOUDFRONT: https://stackoverflow.com/questions/63271865/export-with-name-exrole-is-already-exported-by-stack-root-role
