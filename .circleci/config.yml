@@ -34,6 +34,7 @@ version: 2.1
 # -n flag: https://ryanstutorials.net/bash-scripting-tutorial/bash-if-statements.php
 # mkdir -p: https://www.javatpoint.com/linux-mkdir-p
 # chmod: https://askubuntu.com/questions/22383/how-to-give-read-write-permission-to-a-folder-and-its-sub-folders-and-files
+# ls -ld: https://stackoverflow.com/questions/338037/how-to-check-permissions-of-a-specific-directory
 
 # AWS ERRORS
 # - FIX EXPORT NAME ERROR CLOUDFRONT: https://stackoverflow.com/questions/63271865/export-with-name-exrole-is-already-exported-by-stack-root-role
@@ -94,7 +95,7 @@ commands:
               npm run migrations:revert
               echo "MIGRATION REVERT STATUS: SUCCESS"
             else
-              echo "NO MIGRATION OCCURED"
+              echo "NO MIGRATION OCCURRED"
             fi
 
 jobs:
@@ -246,17 +247,6 @@ jobs:
               echo "YUVOPS_ARN=$YUVOPS_ARN"
               echo "$YUVOPS_ARN"
               curl -H "Content-Type: text/plain" -H "token: 7c7e45d9-6a83-4d93-b869-7338fcf92714" --request PUT --data "$YUVOPS_ARN" https://api.memstash.io/values/yuvopsarn_${CIRCLE_WORKFLOW_ID:0:7}
-      - run:
-          name: YuvOps - Ensure that the cloudfront infrastructure exists
-          command: |
-            cd .circleci/files
-            pwd
-            ls
-            echo ${AWS_DEFAULT_REGION}
-            aws cloudformation deploy \
-                --template-file cloudfront.yml \
-                --stack-name "yuvops-cloudfront-${CIRCLE_WORKFLOW_ID:0:7}" \
-                --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
       - destroy-yuvops-environment
 
 
@@ -309,11 +299,11 @@ jobs:
 
   run-migrations:
     docker:
-      - image: circleci/node:latest
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - add_ssh_keys:
-          fingerprints: ['d7:d3:10:26:b3:5f:8f:e6:f7:86:0d:75:e3:9e:0a:d1']
+          fingerprints: ["d7:d3:10:26:b3:5f:8f:e6:f7:86:0d:75:e3:9e:0a:d1"]
       - run:
           name: "YuvOps - Installing Dependencies"
           command: |
@@ -477,8 +467,8 @@ jobs:
               echo "FRONTEND TEST: FAIL"
               exit 1
             fi
-      # - revert-yuvops-migrations
-      # - destroy-yuvops-environment
+      - revert-yuvops-migrations
+      - destroy-yuvops-environment
 
 
 
