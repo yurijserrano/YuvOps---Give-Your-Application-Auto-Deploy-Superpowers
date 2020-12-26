@@ -433,15 +433,16 @@ jobs:
 
   smoke-test:
     docker:
-      - image: amazon/aws-cli
+      - image: python:3.7-alpine3.11
     steps:
       - checkout
+      - attach_workspace:
+          at: ~/project
       - run:
           name: "YuvOps - Installing Dependencies"
           command: |
-            yum -y install tar gzip
-      - attach_workspace:
-          at: ~/project
+            apk add --update curl nodejs npm
+            pip install awscli
       - run:
           name: "YuvOps - Smoke Test Backend"
           command: |
