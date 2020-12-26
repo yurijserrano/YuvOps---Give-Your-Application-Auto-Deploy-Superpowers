@@ -326,7 +326,7 @@ jobs:
             ls -ld backend
             cd backend
             touch yuvops_migrations_results.txt
-            sudo npm run migrations > yuvops_migrations_results.txt
+            npm run migrations > yuvops_migrations_results.txt
       - run:
           name: "YuvOps - Saving Migration Status"
           command: |
