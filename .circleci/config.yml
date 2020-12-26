@@ -91,7 +91,8 @@ commands:
             if (( $YUVOPS_SUCCESS_MIGRATION == "true" ));
             then
               pwd
-              cd ./backend
+              ls -l
+              cd /root/project/backend
               npm install
               npm run migrations:revert
               echo "MIGRATION REVERT STATUS: SUCCESS"
