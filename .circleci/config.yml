@@ -434,6 +434,10 @@ jobs:
     docker:
       - image: amazon/aws-cli
     steps:
+      - run:
+          name: "YuvOps - Installing Dependencies"
+          command: |
+            yum -y install tar gzip
       - attach_workspace:
           at: ~/project
       - run:
