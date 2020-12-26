@@ -435,6 +435,7 @@ jobs:
     docker:
       - image: amazon/aws-cli
     steps:
+      - checkout
       - run:
           name: "YuvOps - Installing Dependencies"
           command: |
