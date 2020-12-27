@@ -215,7 +215,10 @@ jobs:
       - image: amazon/aws-cli
     steps:
       - checkout
-      - run: yum -y install tar gzip
+      - run:
+          name: "YuvOps - Installing Dependencies"
+          command: |
+            yum -y install tar gzip
       - run:
           name: YuvOps - Ensure that the backend infrastructure exists
           command: |
@@ -249,17 +252,6 @@ jobs:
               echo "YUVOPS_ARN=$YUVOPS_ARN"
               echo "$YUVOPS_ARN"
               curl -H "Content-Type: text/plain" -H "token: 7c7e45d9-6a83-4d93-b869-7338fcf92714" --request PUT --data "$YUVOPS_ARN" https://api.memstash.io/values/yuvopsarn_${CIRCLE_WORKFLOW_ID:0:7}
-      - run:
-          name: YuvOps - Ensure that the cloudfront infrastructure exists
-          command: |
-            cd .circleci/files
-            pwd
-            ls
-            echo ${AWS_DEFAULT_REGION}
-            aws cloudformation deploy \
-              --template-file cloudfront.yml \
-              --stack-name "yuvops-cloudfront-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
       - destroy-yuvops-environment
 
 
@@ -491,7 +483,7 @@ jobs:
 
   cloudfront-update:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: amazon/aws-cli
     steps:
       - checkout
       - attach_workspace:
@@ -499,10 +491,7 @@ jobs:
       - run:
           name: "YuvOps - Installing Dependencies"
           command: |
-            apk add --update curl nodejs npm bash
-            pip install awscli
-      - add_ssh_keys:
-          fingerprints: ['d7:d3:10:26:b3:5f:8f:e6:f7:86:0d:75:e3:9e:0a:d1']
+            yum -y install tar gzip curl nodejs npm
       - run:
           name: "YuvOps - Add/Update Cloudfront Distribution"
           command: |
@@ -514,9 +503,17 @@ jobs:
             then
               echo "Update Existing CloudFront Stack"
               aws cloudformation update-stack  \
+                --stack-name yuvops-cloudfront \
+                --template-body file://./.circleci/files/cloudfront.yml \
+                --parameters ParameterKey=WorkflowID,ParameterValue=${CIRCLE_WORKFLOW_ID:0:7} \
+                --tags project=yuvops
+            else
+              echo "Creating Cloudfront Stack"
+              aws cloudformation deploy \
                 --template-file cloudfront.yml \
                 --stack-name "yuvops-cloudfront-${CIRCLE_WORKFLOW_ID:0:7}" \
-                --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
+                --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
+                --tags project=yuvops
             fi
             if [ -n "${OldWorkflowID}" ]
             then
@@ -527,8 +524,12 @@ jobs:
               echo "YUVOPS - Deleting Backend Stack ${OldWorkflowID}"
               aws cloudformation delete-stack --stack-name yuvops-backend-${OldWorkflowID}
             fi
-      - revert-yuvops-migrations
-      - destroy-yuvops-environment
+      - run:
+          name: "YuvOps - Waiting  Cloudfront be Created/Updated"
+          command: |
+            sleep 200
+      # - revert-yuvops-migrations
+      # - destroy-yuvops-environment
 
 
 workflows:
