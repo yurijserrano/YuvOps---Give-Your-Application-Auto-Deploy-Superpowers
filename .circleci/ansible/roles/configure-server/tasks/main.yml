@@ -1,14 +1,18 @@
 ---
-- name: "YuvOps - Upgrading packages"
-  become: true
+- name: "YuvOps - Updating packages"
+  become: yes
   apt:
-    upgrade: 'yes'
-    state: fixed
+    update_cache: yes
+
+- name: "YuvOps - Upgrading packages"
+  become: yes
+  apt:
+    upgrade: yes
 
 - name: "YuvOps - Installing Node & NPM"
   become: true
   apt:
-    name: ['nodejs', 'npm']
+    name: ["nodejs", "npm"]
     state: latest
     update_cache: yes
 
@@ -19,8 +23,3 @@
     global: yes
     production: yes
     state: present
-
-- name: "YuvOps - Creating directory"
-  file:
-    path: ./backend-app
-    state: directory
