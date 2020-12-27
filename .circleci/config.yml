@@ -486,12 +486,12 @@ jobs:
       - image: amazon/aws-cli
     steps:
       - checkout
-      - attach_workspace:
-          at: ~/project
       - run:
           name: "YuvOps - Installing Dependencies"
           command: |
             yum -y install tar gzip curl nodejs npm
+      - attach_workspace:
+          at: ~/project
       - run:
           name: "YuvOps - Add/Update Cloudfront Distribution"
           command: |
