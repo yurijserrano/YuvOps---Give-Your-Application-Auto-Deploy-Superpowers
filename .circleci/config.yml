@@ -489,7 +489,12 @@ jobs:
       - run:
           name: "YuvOps - Installing Dependencies"
           command: |
-            yum -y install tar gzip curl nodejs npm
+            yum -y install tar gzip
+      - run:
+          name: "YuvOps - Intalling Node.js"
+          command: |
+            curl -sL https://rpm.nodesource.com/setup_13.x | bash -
+            yum -y install nodejs
       - attach_workspace:
           at: ~/project
       - run:
@@ -525,9 +530,9 @@ jobs:
               aws cloudformation delete-stack --stack-name yuvops-backend-${OldWorkflowID}
             fi
       - run:
-          name: "YuvOps - Waiting  Cloudfront be Created/Updated"
+          name: "YuvOps - Waiting  Cloudfront be Created/Updated & Available"
           command: |
-            sleep 200
+            sleep 600
       # - revert-yuvops-migrations
       # - destroy-yuvops-environment
 
