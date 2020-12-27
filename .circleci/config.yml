@@ -493,7 +493,7 @@ jobs:
       - run:
           name: "YuvOps - Intalling Node.js"
           command: |
-            curl -sL https://rpm.nodesource.com/setup_13.x | bash -
+            curl -sL https://rpm.nodesource.com/setup_12.x | bash -
             yum -y install nodejs
       - attach_workspace:
           at: ~/project
@@ -509,7 +509,7 @@ jobs:
               echo "Update Existing CloudFront Stack"
               aws cloudformation update-stack  \
                 --stack-name yuvops-cloudfront \
-                --template-body cloudfront.yml \
+                --template-body file://cloudfront.yml \
                 --parameters ParameterKey=WorkflowID,ParameterValue=${CIRCLE_WORKFLOW_ID:0:7} \
                 --tags 'Key=project,Value=yuvops'
             else
