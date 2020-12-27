@@ -516,7 +516,7 @@ jobs:
               echo "Creating Cloudfront Stack"
               aws cloudformation deploy \
                 --template-file cloudfront.yml \
-                --stack-name "yuvops-cloudfront-${CIRCLE_WORKFLOW_ID:0:7}" \
+                --stack-name "yuvops-cloudfront" \
                 --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
                 --tags project=yuvops
             fi
