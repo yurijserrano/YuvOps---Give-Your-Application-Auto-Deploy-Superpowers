@@ -509,7 +509,7 @@ jobs:
               echo "Update Existing CloudFront Stack"
               aws cloudformation update-stack  \
                 --stack-name yuvops-cloudfront \
-                --template-body file://./.circleci/files/cloudfront.yml \
+                --template-body cloudfront.yml \
                 --parameters ParameterKey=WorkflowID,ParameterValue=${CIRCLE_WORKFLOW_ID:0:7} \
                 --tags project=yuvops
             else
