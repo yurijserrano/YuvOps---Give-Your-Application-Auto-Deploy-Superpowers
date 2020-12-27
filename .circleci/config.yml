@@ -494,23 +494,24 @@ jobs:
       - run:
           name: "YuvOps - Add/Update Cloudfront Distribution"
           command: |
+            cd .circleci/files
+            pwd
             export OldWorkflowID=$(aws cloudformation list-exports --query "Exports[?Name=='WorkflowID'].Value" --no-paginate --output text)
             echo "OLDWORKFLOWID: ${OldWorkflowID}"
             if [ -n "${OldWorkflowID}" ]
             then
               echo "Update Existing CloudFront Stack"
               aws cloudformation update-stack  \
-                --stack-name yuvops-cloudfront \
-                --template-body file://./.circleci/files/cloudfront.yml \
-                --parameters ParameterKey=WorkflowID,ParameterValue=${CIRCLE_WORKFLOW_ID:0:7} \
-                --tags 'Key=project,Value=yuvops'
+                --template-file cloudfront.yml \
+                --stack-name "yuvops-cloudfront-${CIRCLE_WORKFLOW_ID:0:7}" \
+                --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
             else
               echo "Create CloudFront Stack"
-              aws cloudformation create-stack  \
-                --stack-name yuvops-cloudfront \
-                --template-body file://./.circleci/files/cloudfront.yml \
-                --parameters ParameterKey=WorkflowID,ParameterValue=${CIRCLE_WORKFLOW_ID:0:7} \
-                --tags 'Key=project,Value=yuvops'
+              aws cloudformation deploy \
+                --template-file cloudfront.yml \
+                --stack-name "yuvops-cloudfront-${CIRCLE_WORKFLOW_ID:0:7}" \
+                --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
+
             fi
             if [ -n "${OldWorkflowID}" ]
             then
