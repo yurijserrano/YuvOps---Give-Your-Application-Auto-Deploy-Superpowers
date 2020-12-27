@@ -550,7 +550,7 @@ jobs:
             if [ -n "${OldWorkflowID}" ]
             then
               echo "YUVOPS - Removing S3 Bucket and Frontend Stack ${OldWorkflowID}"
-              aws s3 rm "s3://yuvops-frontend-${OldWorkflowID}" --recursive
+              aws s3 rm "s3://yuvops-${OldWorkflowID}" --recursive
               aws cloudformation delete-stack --stack-name yuvops-frontend-${OldWorkflowID}
 
               echo "YUVOPS - Deleting Backend Stack ${OldWorkflowID}"
