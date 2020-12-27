@@ -520,6 +520,33 @@ jobs:
                 --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
                 --tags project=yuvops
             fi
+      - revert-yuvops-migrations
+      - destroy-yuvops-environment
+
+  cleanup:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: "YuvOps - Cleaning Old Stacks"
+          command: |
+            set  WorkflowID = ${CIRCLE_WORKFLOW_ID:0:7}
+            export OldWorkflowID=$(aws cloudformation list-exports --query "Exports[?Name=='WorkflowID'].Value" --no-paginate --output text)
+            export STACKS=$(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
+              --stack-status-filter CREATE_COMPLETE --no-paginate --output text)
+
+            echo "OLDWORKFLOWID: ${OldWorkflowID}"
+            echo "YUVOPS STACKS: ${STACKS[*]}"
+            echo "WORKFLOWID: ${WorkflowID}"
+
+            if echo "${STACKS[*]}" | grep -Eq "${OldWorkflowID}"
+            then
+              echo "${OldWorkflowID}"
+              echo "This is the bucket: yuvops-${OldWorkflowID}"
+              echo "This is the bucket url: s3://yuvops-${OldWorkflowID}"
+            fi
+
             if [ -n "${OldWorkflowID}" ]
             then
               echo "YUVOPS - Removing S3 Bucket and Frontend Stack ${OldWorkflowID}"
@@ -529,13 +556,6 @@ jobs:
               echo "YUVOPS - Deleting Backend Stack ${OldWorkflowID}"
               aws cloudformation delete-stack --stack-name yuvops-backend-${OldWorkflowID}
             fi
-      - run:
-          name: "YuvOps - Waiting  Cloudfront be Created/Updated & Available"
-          command: |
-            sleep 600
-      # - revert-yuvops-migrations
-      # - destroy-yuvops-environment
-
 
 workflows:
   default:
@@ -586,3 +606,6 @@ workflows:
       - cloudfront-update:
           requires:
             - smoke-test
+      - cleanup:
+          requires:
+            - cloudfront-update
