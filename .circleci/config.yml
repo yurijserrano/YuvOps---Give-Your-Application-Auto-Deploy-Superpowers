@@ -511,7 +511,7 @@ jobs:
                 --stack-name yuvops-cloudfront \
                 --template-body cloudfront.yml \
                 --parameters ParameterKey=WorkflowID,ParameterValue=${CIRCLE_WORKFLOW_ID:0:7} \
-                --tags project=yuvops
+                --tags 'Key=project,Value=yuvops'
             else
               echo "Creating Cloudfront Stack"
               aws cloudformation deploy \
