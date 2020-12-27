@@ -249,8 +249,18 @@ jobs:
               echo "YUVOPS_ARN=$YUVOPS_ARN"
               echo "$YUVOPS_ARN"
               curl -H "Content-Type: text/plain" -H "token: 7c7e45d9-6a83-4d93-b869-7338fcf92714" --request PUT --data "$YUVOPS_ARN" https://api.memstash.io/values/yuvopsarn_${CIRCLE_WORKFLOW_ID:0:7}
+      - run:
+          name: YuvOps - Ensure that the cloudfront infrastructure exists
+          command: |
+            cd .circleci/files
+            pwd
+            ls
+            echo ${AWS_DEFAULT_REGION}
+            aws cloudformation deploy \
+              --template-file cloudfront.yml \
+              --stack-name "yuvops-cloudfront-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
       - destroy-yuvops-environment
-
 
 
   configure-infrastructure:
@@ -489,8 +499,10 @@ jobs:
       - run:
           name: "YuvOps - Installing Dependencies"
           command: |
-            apk add --update curl nodejs npm
+            apk add --update curl nodejs npm bash
             pip install awscli
+      - add_ssh_keys:
+          fingerprints: ['d7:d3:10:26:b3:5f:8f:e6:f7:86:0d:75:e3:9e:0a:d1']
       - run:
           name: "YuvOps - Add/Update Cloudfront Distribution"
           command: |
@@ -505,13 +517,6 @@ jobs:
                 --template-file cloudfront.yml \
                 --stack-name "yuvops-cloudfront-${CIRCLE_WORKFLOW_ID:0:7}" \
                 --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
-            else
-              echo "Create CloudFront Stack"
-              aws cloudformation deploy \
-                --template-file cloudfront.yml \
-                --stack-name "yuvops-cloudfront-${CIRCLE_WORKFLOW_ID:0:7}" \
-                --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
-
             fi
             if [ -n "${OldWorkflowID}" ]
             then
