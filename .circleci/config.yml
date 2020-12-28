@@ -312,7 +312,7 @@ jobs:
       - run:
           name: "YuvOps - Installing Dependencies"
           command: |
-            yum -y install tar gzip
+            yum -y install tar gzip sudo
       - run:
           name: "YuvOps - Intalling Node.js"
           command: |
