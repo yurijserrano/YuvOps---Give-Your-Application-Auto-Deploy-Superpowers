@@ -473,7 +473,7 @@ jobs:
             if curl -s ${YUVOPS_FRONTEND_URL} | grep "Welcome"
             then
               echo "FRONTEND TEST: SUCCESS"
-              exit 0
+              exit 1
             else
               echo "FRONTEND TEST: FAIL"
               exit 1
