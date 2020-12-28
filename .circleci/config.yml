@@ -90,6 +90,7 @@ commands:
             echo "RESULT: $YUVOPS_SUCCESS_MIGRATION"
             if (( $YUVOPS_SUCCESS_MIGRATION == "true" ));
             then
+              echo "YUVOPS - START MIGRATION"
               pwd
               ls -l
               cd ~/project/backend
@@ -303,11 +304,22 @@ jobs:
 
   run-migrations:
     docker:
-      - image: circleci/node:13.8.0
+      - image: amazon/aws-cli
     steps:
       - checkout
       - add_ssh_keys:
           fingerprints: ["d7:d3:10:26:b3:5f:8f:e6:f7:86:0d:75:e3:9e:0a:d1"]
+      - run:
+          name: "YuvOps - Installing Dependencies"
+          command: |
+            yum -y install tar gzip
+      - run:
+          name: "YuvOps - Intalling Node.js"
+          command: |
+            curl -sL https://rpm.nodesource.com/setup_12.x | bash -
+            yum -y install nodejs
+      - attach_workspace:
+          at: ~/project
       - run:
           name: "YuvOps - Installing Dependencies"
           command: |
