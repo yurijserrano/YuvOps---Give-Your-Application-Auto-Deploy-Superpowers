@@ -38,6 +38,11 @@ version: 2.1
 
 # AWS ERRORS
 # - FIX EXPORT NAME ERROR CLOUDFRONT: https://stackoverflow.com/questions/63271865/export-with-name-exrole-is-already-exported-by-stack-root-role
+# - CLOUDFRONT REDIRECTING TO S3 ENDPOINT WITH 307 TEMPORARY REDIRECT I: https://stackoverflow.com/questions/46520566/cloudfront-redirecting-to-s3-endpoint-with-307-temporary-redirect
+# - CLOUDFRONT REDIRECTING TO S3 ENDPOINT WITH 307 TEMPORARY REDIRECT II: https://aws.amazon.com/pt/premiumsupport/knowledge-center/s3-http-307-response/
+# - CLOUDFRONT REDIRECTING TO S3 ENDPOINT WITH 307 TEMPORARY REDIRECT III: https://forums.aws.amazon.com/thread.jspa?threadID=216814
+# - CLOUDFRONT REDIRECTING TO S3 ENDPOINT WITH 307 TEMPORARY REDIRECT IV: https://stackoverflow.com/questions/38706424/aws-cloudfront-returns-http-307-when-origin-is-s3-bucket
+
 
 
 # AWS CLI
@@ -54,6 +59,9 @@ version: 2.1
 # - describe-instances: https://docs.aws.amazon.com/cli/latest/reference/ec2/describe-instances.html
 # - region: https://aws.amazon.com/blogs/infrastructure-and-automation/multiple-account-multiple-region-aws-cloudformation/
 # - s3 sync: https://docs.aws.amazon.com/cli/latest/reference/s3/sync.html
+
+# AMAZON EC2 IMAGE
+# - AMAZON LINUX 2 SU COMMAND NOT FOUND: https://superuser.com/questions/1524300/amazon-linux-2-su-command-not-found
 
 
 # ANSIBLE
@@ -489,7 +497,7 @@ jobs:
             if curl -s ${YUVOPS_FRONTEND_URL} | grep "Welcome"
             then
               echo "FRONTEND TEST: SUCCESS"
-              exit 1
+              exit 0
             else
               echo "FRONTEND TEST: FAIL"
               exit 1
