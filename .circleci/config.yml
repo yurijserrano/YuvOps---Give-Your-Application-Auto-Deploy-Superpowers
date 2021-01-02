@@ -59,6 +59,9 @@ version: 2.1
 # - describe-instances: https://docs.aws.amazon.com/cli/latest/reference/ec2/describe-instances.html
 # - region: https://aws.amazon.com/blogs/infrastructure-and-automation/multiple-account-multiple-region-aws-cloudformation/
 # - s3 sync: https://docs.aws.amazon.com/cli/latest/reference/s3/sync.html
+# - update-stack I: https://docs.aws.amazon.com/cli/latest/reference/cloudformation/update-stack.html
+# - update-stack II: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-direct.html
+
 
 # AMAZON EC2 IMAGE
 # - AMAZON LINUX 2 SU COMMAND NOT FOUND: https://superuser.com/questions/1524300/amazon-linux-2-su-command-not-found
