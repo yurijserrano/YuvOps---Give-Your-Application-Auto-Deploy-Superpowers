@@ -6,11 +6,12 @@ version: 2.1
 # - https://cloud-images.ubuntu.com/locator/
 
 # CIRCLECI REF:
-# - https://circleci.com/docs/2.0/env-vars/
-# - https://discuss.circleci.com/t/using-environment-variables-inside-circle-yml/2427
-# - https://circleci.com/docs/2.0/pipeline-variables/
-# - https://circleci.com/docs/2.0/configuration-reference/#the-when-step-requires-version-21
-# - https://circleci.com/docs/2.0/notifications/
+# - SKIP BUILD:    https://circleci.com/docs/2.0/skip-build/
+# - ENV VARS I:    https://circleci.com/docs/2.0/env-vars/
+# - ENV VARS II:   https://discuss.circleci.com/t/using-environment-variables-inside-circle-yml/2427
+# - PIPELINE VARS: https://circleci.com/docs/2.0/pipeline-variables/
+# - WHEN STEP:     https://circleci.com/docs/2.0/configuration-reference/#the-when-step-requires-version-21
+# - NOTIFICATIONS: https://circleci.com/docs/2.0/notifications/
 
 # DOCKER IMAGES:
 # - https://hub.docker.com/_/python
@@ -21,13 +22,26 @@ version: 2.1
 # - https://memstash.io
 
 # AWS - VIDEOS
-# - AWS SETUP: https://youtu.be/d1W1HUz8yRw
+#
+# AWS SETUP
+#   => https://youtu.be/d1W1HUz8yRw
+
+# CREATE IAM USER
+#   => https://youtu.be/y62qoYwxbXU
+#   => https://youtu.be/wRzzBb18qUw
+#   => https://youtu.be/8CcohIzLU3g
+
+# CREATE SSH KEY
+#   => https://youtu.be/W9x4w8g4sdg
+
+
+# YAML TOOLS
+#   => http://www.yamllint.com/
+#   => https://codebeautify.org/yaml-validator
+#   => https://codebeautify.org/yaml-beautifier
 
 # CIRCLECI - VIDEOS
 # - ENVIRONMENT VARIABLES: https://youtu.be/caFJQ1YwVdU
-
-# PROMETHEUS - VIDEOS
-# - PROMETHEUS SETUP: https://youtu.be/PSXrbE54FqQ
 
 # BASH
 # SYNTAX - IF THEN ELSE: https://linuxize.com/post/bash-if-else-statement/
@@ -42,8 +56,6 @@ version: 2.1
 # - CLOUDFRONT REDIRECTING TO S3 ENDPOINT WITH 307 TEMPORARY REDIRECT II: https://aws.amazon.com/pt/premiumsupport/knowledge-center/s3-http-307-response/
 # - CLOUDFRONT REDIRECTING TO S3 ENDPOINT WITH 307 TEMPORARY REDIRECT III: https://forums.aws.amazon.com/thread.jspa?threadID=216814
 # - CLOUDFRONT REDIRECTING TO S3 ENDPOINT WITH 307 TEMPORARY REDIRECT IV: https://stackoverflow.com/questions/38706424/aws-cloudfront-returns-http-307-when-origin-is-s3-bucket
-
-
 
 # AWS CLI
 #
@@ -61,6 +73,7 @@ version: 2.1
 # - s3 sync: https://docs.aws.amazon.com/cli/latest/reference/s3/sync.html
 # - update-stack I: https://docs.aws.amazon.com/cli/latest/reference/cloudformation/update-stack.html
 # - update-stack II: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-direct.html
+# - update-stack III: https://stackoverflow.com/questions/41992569/template-format-error-unsupported-structure-seen-in-aws-cloudformation
 
 
 # AMAZON EC2 IMAGE
@@ -73,8 +86,56 @@ version: 2.1
 # - hosts & groups: https://docs.ansible.com/ansible/2.3/intro_inventory.html
 # - ssh key access: https://superuser.com/questions/1179888/how-can-i-escape-the-message-that-the-authenticity-of-cant-be-established-for-s
 
-# PROMETHEUS PORTS
-# - https://github.com/prometheus/prometheus/wiki/Default-port-allocations
+# PROMETHEUS MATERIAL
+
+# INSTALLATION ON EC2
+#   => https://codewizardly.com/prometheus-on-aws-ec2-part1/
+#   => https://youtu.be/AFVdpKG66RU?list=PLVx1qovxj-anCTn6um3BDsoHnIr0O2tz3
+#   => https://www.youtube.com/watch?v=qJl5fMKpETg&feature=emb_logo
+#   => https://youtu.be/PSXrbE54FqQ
+
+# PROMETHEUS SERVICE DISCOVERY
+#   => https://codewizardly.com/prometheus-on-aws-ec2-part3/
+#   => https://youtu.be/Dqw_bMG4c8I
+
+# INSTALLING ALERTMANAGER
+#   => https://www.youtube.com/watch?v=bPHOI29rwB0
+#     -> https://github.com/shazforiot/Prometheusalertmanager/blob/main/alert.rules.yml
+#   => https://youtu.be/sm-OhMs1kdY
+
+# SETTING ALERTS
+#   => https://youtu.be/nxd9dDnouxo
+#   => https://youtu.be/dRSmGkbPpBI
+
+# PROMETHEUS EMAIL NOTIFICATION
+#   => https://codewizardly.com/prometheus-on-aws-ec2-part4/
+#   => https://youtu.be/x2qTvTN8YKI
+
+# ENDPOINTS
+#   => :9090/targets
+#   => :9090/metrics
+#   => :9090/rules
+#   => :9090/graph
+#   => :9090/config
+#   => :9090/status
+
+# PROMETHEUS COMMANDS
+#   ./prometheus --version
+#     => Check prometheus version
+
+#   ./prometheus --config.file=./prometheus.yml
+#     => Start prometheus using a config
+
+# ALERTMANAGER COMMANDS
+#   ./alertmanager
+#     => Start alertmanager
+
+# GRAPHS
+# => https://youtu.be/vbz2Js9iwos
+
+
+# PORTS
+#   => https://github.com/prometheus/prometheus/wiki/Default-port-allocations
 
 commands:
   destroy-yuvops-environment:
